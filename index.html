@@ -200,6 +200,7 @@
                     <div class="flex justify-between items-center mb-3">
                         <h2 class="font-bold text-gray-300">Generated Images</h2>
                         <div>
+                            <button id="download-all-btn" class="btn-secondary py-1 px-3 text-sm mr-2">Download All</button>
                             <button id="download-btn" class="btn-secondary py-1 px-3 text-sm mr-2">Download Selected</button>
                             <button id="clear-btn" class="btn-secondary py-1 px-3 text-sm">Clear</button>
                         </div>
@@ -235,6 +236,7 @@
                 progressDetails: document.getElementById('progress-details'),
                 imageOutput: document.getElementById('image-output'),
                 imageGrid: document.getElementById('image-grid'),
+                downloadAllBtn: document.getElementById('download-all-btn'),
                 downloadBtn: document.getElementById('download-btn'),
                 clearBtn: document.getElementById('clear-btn'),
             };
@@ -378,7 +380,7 @@
                     const base64Data = data.predictions?.[0]?.bytesBase64Encoded;
                     displayImage(theme, base64Data, placeholder);
                 } catch (e) {
-                    placeholder.innerHTML = `<div class="text-red-400 text-xs p-1">Error</div>`;
+                    placeholder.innerHTML = `<div class="text-red-400 text-xs p-1">Error: ${e.message}</div>`;
                 }
             }
 
@@ -390,8 +392,8 @@
                 const imageData = { name: `${theme.replace(/\s+/g, '_')}.png`, data: base64Data };
                 generatedImages.set(placeholder, imageData);
 
+                // ✅ Tambah event listener untuk multi-select
                 placeholder.addEventListener('click', (e) => {
-                    // ✅ Fix multi-select: hanya toggle jika bukan klik pada tombol lain
                     if (e.target.tagName !== 'BUTTON') {
                         toggleSelection(placeholder);
                     }
@@ -417,7 +419,17 @@
                     const data = generatedImages.get(el);
                     if (data) zip.file(data.name, data.data, { base64: true });
                 });
-                zip.generateAsync({ type: 'blob' }).then(blob => saveAs(blob, 'vector-pack.zip'));
+                zip.generateAsync({ type: 'blob' }).then(blob => saveAs(blob, 'vector-pack-selected.zip'));
+            });
+
+            // --- Download All ---
+            elements.downloadAllBtn.addEventListener('click', () => {
+                if (generatedImages.size === 0) return showError('Tidak ada gambar untuk diunduh');
+                const zip = new JSZip();
+                generatedImages.forEach((data, el) => {
+                    zip.file(data.name, data.data, { base64: true });
+                });
+                zip.generateAsync({ type: 'blob' }).then(blob => saveAs(blob, 'vector-pack-all.zip'));
             });
 
             // --- Clear Grid ---
