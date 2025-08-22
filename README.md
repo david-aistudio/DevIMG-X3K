@@ -61,12 +61,18 @@ DevIMG-X3K/
 
 1. Clone repo ini:
    ```bash
-   git clone https://github.com/username/DevIMG-X3K.git
+   git clone https://github.com/david-aistudio/DevIMG-X3K.git
    ```
 
 2. Buka `index.html` di browser.
 
 3. Masukkan API Key Google AI kamu.
+
+---
+
+## 🤝 Kontribusi
+
+Kontribusi dibuka! Silakan buat *pull request* atau laporkan *issue*.
 
 ---
 
