@@ -8,7 +8,7 @@
 
 ![DevIMG X3K Preview](preview.png)
 
-> *Contoh hasil generate gambar vektor dari prompt "a cat astronaut"*
+> *Contoh hasil generate gambar vektor dari prompt "a hot air balloon"*
 
 ---
 
@@ -18,6 +18,7 @@
 - **Mode Auto-Pilot** — Otomatis buat ide & generate gambar berdasarkan tema.
 - **Mode Random** — Generate 8 gambar acak dari bank ide.
 - **Download ZIP** — Unduh gambar yang dipilih dalam format `.zip`.
+- **Simpan/Muat Sesi** — Jangan khawatir kehilangan hasil saat refresh.
 - **Antarmuka Profesional** — Desain GUI ala terminal dengan font `JetBrains Mono`.
 
 ---
