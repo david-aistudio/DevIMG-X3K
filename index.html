@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevIMG X3K</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #0f172a;
+            color: #d1d5db;
+        }
+
+        .card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #7e22ce, #a855f7);
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #6d21b0, #9333ea);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #d1d5db;
+            border-radius: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .tab-btn {
+            background-color: #334155;
+            color: #94a3b8;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(90deg, #0ea5e9, #0284c7);
+            color: white;
+        }
+
+        .image-card {
+            position: relative;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .image-card:hover {
+            transform: scale(1.03);
+            border-color: #4f46e5;
+        }
+
+        .image-card.selected {
+            border-color: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .progress-bg {
+            height: 8px;
+            background-color: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #0ea5e9);
+            transition: width 0.4s ease;
+        }
+
+        input, select, textarea {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            color: #d1d5db;
+            border-radius: 6px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: #1e293b;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-cyan-400">
+                DevIMG X3K
+            </h1>
+            <p class="text-gray-400 mt-1">Image Generator for Vector Assets — Presisi & Profesional</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="card p-5">
+                    <h2 class="font-bold text-lg mb-4 text-cyan-400">Controls</h2>
+
+                    <!-- API Key -->
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-400 mb-1">API Key</label>
+                        <input type="password" id="api-key-input" class="w-full px-3 py-2" placeholder="Google AI Key">
+                    </div>
+
+                    <!-- Model Selector -->
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-400 mb-1">Model</label>
+                        <select id="model-selector" class="w-full px-3 py-2">
+                            <option value="imagen-4.0-generate-001">Imagen 4 (Rekomendasi)</option>
+                            <option value="imagen-4.0-ultra-generate-001">Imagen 4 Ultra</option>
+                        </select>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex mb-4">
+                        <button id="manual-tab" class="tab-btn active flex-1 py-2 rounded-l">Manual</button>
+                        <button id="autopilot-tab" class="tab-btn flex-1 py-2 rounded-r">Auto-Pilot</button>
+                    </div>
+
+                    <!-- Manual Mode -->
+                    <div id="manual-mode">
+                        <label class="block text-sm text-gray-400 mb-1">Prompt</label>
+                        <textarea id="idea-input" rows="3" class="w-full px-3 py-2 mb-3" placeholder="e.g. a cat astronaut"></textarea>
+                        <button id="generate-btn" class="btn-primary w-full py-2">Generate Image</button>
+                    </div>
+
+                    <!-- Auto-Pilot Mode -->
+                    <div id="autopilot-mode" class="hidden">
+                        <label class="block text-sm text-gray-400 mb-1">Theme</label>
+                        <input type="text" id="autopilot-theme" class="w-full px-3 py-2 mb-3" placeholder="e.g. cyberpunk animals">
+                        <label class="block text-sm text-gray-400 mb-1">Count</label>
+                        <input type="number" id="autopilot-count" value="10" min="1" max="30" class="w-full px-3 py-2 mb-3">
+                        <button id="autopilot-btn" class="btn-primary w-full py-2">Start Auto-Pilot</button>
+                    </div>
+
+                    <!-- Random Button -->
+                    <div class="mt-4">
+                        <button id="random-btn" class="btn-secondary w-full py-2 text-sm">Generate Random</button>
+                    </div>
+
+                    <p id="error-msg" class="text-red-400 text-sm mt-3 text-center"></p>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-3">
+                <!-- Progress Bar -->
+                <div id="progress-section" class="card p-4 mb-6 hidden">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span id="progress-label">Preparing...</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-details" class="text-xs text-gray-500 mt-1"></div>
+                </div>
+
+                <!-- Image Grid -->
+                <div id="image-output" class="hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="font-bold text-gray-300">Generated Images</h2>
+                        <div>
+                            <button id="download-btn" class="btn-secondary py-1 px-3 text-sm mr-2">Download Selected</button>
+                            <button id="clear-btn" class="btn-secondary py-1 px-3 text-sm">Clear</button>
+                        </div>
+                    </div>
+                    <div id="image-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = {
+                apiKeyInput: document.getElementById('api-key-input'),
+                modelSelector: document.getElementById('model-selector'),
+                manualTab: document.getElementById('manual-tab'),
+                autopilotTab: document.getElementById('autopilot-tab'),
+                manualMode: document.getElementById('manual-mode'),
+                autopilotMode: document.getElementById('autopilot-mode'),
+                ideaInput: document.getElementById('idea-input'),
+                generateBtn: document.getElementById('generate-btn'),
+                autopilotTheme: document.getElementById('autopilot-theme'),
+                autopilotCount: document.getElementById('autopilot-count'),
+                autopilotBtn: document.getElementById('autopilot-btn'),
+                randomBtn: document.getElementById('random-btn'),
+                errorMsg: document.getElementById('error-msg'),
+                progressSection: document.getElementById('progress-section'),
+                progressLabel: document.getElementById('progress-label'),
+                progressPercent: document.getElementById('progress-percent'),
+                progressBar: document.getElementById('progress-bar'),
+                progressDetails: document.getElementById('progress-details'),
+                imageOutput: document.getElementById('image-output'),
+                imageGrid: document.getElementById('image-grid'),
+                downloadBtn: document.getElementById('download-btn'),
+                clearBtn: document.getElementById('clear-btn'),
+            };
+
+            let generatedImages = new Map();
+            let selectedImages = new Set();
+
+            // --- Theme Bank ---
+            const allThemes = [
+                'a capybara DJing at a rave party on Mars',
+                'an octopus knitting a nebula in a teacup',
+                'a robot trying to eat spaghetti with chopsticks',
+                'a philosophical dinosaur wearing a monocle',
+                'a cat astronaut planting a flag made of cheese',
+                'a wizard ordering pizza via a crystal ball',
+                'a group of penguins having a heated business meeting',
+                'a grizzly bear riding a tiny unicycle',
+                'a ghost trying to read a newspaper',
+                'a zombie working as a high-fashion barista'
+            ];
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            // --- Tab Switching ---
+            function switchTab(tab) {
+                if (tab === 'manual') {
+                    elements.manualTab.classList.add('active');
+                    elements.autopilotTab.classList.remove('active');
+                    elements.manualMode.classList.remove('hidden');
+                    elements.autopilotMode.classList.add('hidden');
+                } else {
+                    elements.manualTab.classList.remove('active');
+                    elements.autopilotTab.classList.add('active');
+                    elements.manualMode.classList.add('hidden');
+                    elements.autopilotMode.classList.remove('hidden');
+                }
+            }
+
+            elements.manualTab.addEventListener('click', () => switchTab('manual'));
+            elements.autopilotTab.addEventListener('click', () => switchTab('autopilot'));
+
+            // --- Progress Update ---
+            function updateProgress(label, percent, detail = '') {
+                elements.progressLabel.textContent = label;
+                elements.progressPercent.textContent = `${percent}%`;
+                elements.progressBar.style.width = `${percent}%`;
+                elements.progressDetails.textContent = detail;
+            }
+
+            // --- Error Handling ---
+            function showError(msg) {
+                elements.errorMsg.textContent = msg;
+                setTimeout(() => elements.errorMsg.textContent = '', 3000);
+            }
+
+            // --- Generate Manual ---
+            elements.generateBtn.addEventListener('click', async () => {
+                const apiKey = elements.apiKeyInput.value.trim();
+                if (!apiKey) return showError('API Key diperlukan');
+                const prompt = elements.ideaInput.value.trim();
+                if (!prompt) return showError('Prompt tidak boleh kosong');
+
+                await generateImages([prompt], apiKey);
+            });
+
+            // --- Generate Random ---
+            elements.randomBtn.addEventListener('click', async () => {
+                const apiKey = elements.apiKeyInput.value.trim();
+                if (!apiKey) return showError('API Key diperlukan');
+
+                shuffleArray(allThemes);
+                const themes = allThemes.slice(0, 8);
+                await generateImages(themes, apiKey);
+            });
+
+            // --- Auto-Pilot ---
+            elements.autopilotBtn.addEventListener('click', async () => {
+                const apiKey = elements.apiKeyInput.value.trim();
+                if (!apiKey) return showError('API Key diperlukan');
+                const theme = elements.autopilotTheme.value.trim();
+                if (!theme) return showError('Tema tidak boleh kosong');
+                const count = parseInt(elements.autopilotCount.value) || 10;
+
+                elements.progressSection.classList.remove('hidden');
+                updateProgress('Langkah 1/4: Membuat ide...', 10, 'Menganalisis tema...');
+
+                try {
+                    const ideas = await fetchTrendIdeas(theme, apiKey, count);
+                    const limitedIdeas = ideas.slice(0, count); // ✅ Batasi sesuai count
+                    updateProgress(`Langkah 2/4: Menghasilkan gambar (${limitedIdeas.length})`, 30);
+                    await generateImages(limitedIdeas, apiKey);
+                    updateProgress('Langkah 4/4: Selesai!', 100, `Berhasil membuat ${limitedIdeas.length} gambar.`);
+                    setTimeout(() => elements.progressSection.classList.add('hidden'), 1500);
+                } catch (e) {
+                    showError(`Auto-Pilot error: ${e.message}`);
+                    elements.progressSection.classList.add('hidden');
+                }
+            });
+
+            // --- Generate Images ---
+            async function generateImages(themes, apiKey) {
+                elements.imageGrid.innerHTML = '';
+                generatedImages.clear();
+                selectedImages.clear();
+                elements.imageOutput.classList.remove('hidden');
+                elements.progressSection.classList.remove('hidden');
+
+                for (let i = 0; i < themes.length; i++) {
+                    const theme = themes[i];
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'image-card aspect-square flex items-center justify-center';
+                    placeholder.innerHTML = `<div class="text-gray-500">Loading...</div>`;
+                    elements.imageGrid.appendChild(placeholder);
+
+                    updateProgress(`Menghasilkan [${i+1}/${themes.length}]`, 30 + (60 * i / themes.length), theme);
+                    await generateSingleImage(theme, placeholder, apiKey);
+                }
+
+                elements.progressSection.classList.add('hidden');
+            }
+
+            async function generateSingleImage(theme, placeholder, apiKey) {
+                try {
+                    const model = elements.modelSelector.value;
+                    const fullPrompt = `ultra high quality 2d vector illustration of ${theme}. flat design, minimalist, solid colors, isolated on white background.`;
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            instances: [{ prompt: fullPrompt }],
+                            parameters: { sampleCount: 1 }
+                        })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error?.message || 'Gagal generate');
+                    const base64Data = data.predictions?.[0]?.bytesBase64Encoded;
+                    displayImage(theme, base64Data, placeholder);
+                } catch (e) {
+                    placeholder.innerHTML = `<div class="text-red-400 text-xs p-1">Error</div>`;
+                }
+            }
+
+            function displayImage(theme, base64Data, placeholder) {
+                const imgUrl = `data:image/png;base64,${base64Data}`;
+                placeholder.innerHTML = `
+                    <img src="${imgUrl}" alt="${theme}" class="w-full h-full object-cover">
+                `;
+                const imageData = { name: `${theme.replace(/\s+/g, '_')}.png`, data: base64Data };
+                generatedImages.set(placeholder, imageData);
+
+                placeholder.addEventListener('click', () => {
+                    toggleSelection(placeholder); // ✅ Multi-select
+                });
+            }
+
+            // --- Multi-Select Gambar ---
+            function toggleSelection(el) {
+                if (selectedImages.has(el)) {
+                    selectedImages.delete(el);
+                    el.classList.remove('selected');
+                } else {
+                    selectedImages.add(el);
+                    el.classList.add('selected');
+                }
+            }
+
+            // --- Download Selected ---
+            elements.downloadBtn.addEventListener('click', () => {
+                if (selectedImages.size === 0) return showError('Tidak ada gambar yang dipilih');
+                const zip = new JSZip();
+                selectedImages.forEach(el => {
+                    const data = generatedImages.get(el);
+                    if (data) zip.file(data.name, data.data, { base64: true });
+                });
+                zip.generateAsync({ type: 'blob' }).then(blob => saveAs(blob, 'vector-pack.zip'));
+            });
+
+            // --- Clear Grid ---
+            elements.clearBtn.addEventListener('click', () => {
+                elements.imageGrid.innerHTML = '';
+                generatedImages.clear();
+                selectedImages.clear();
+                elements.imageOutput.classList.add('hidden');
+            });
+
+            // --- Helper API Functions ---
+            async function fetchTrendIdeas(topic, apiKey, quantity = 12) {
+                const prompt = `You are a microstock trend analyst. Generate ${quantity} specific and marketable vector illustration ideas based on "${topic}". Output as JSON array of strings.`;
+                const payload = {
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }],
+                    generation_config: { response_mime_type: "application/json" }
+                };
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error?.message || 'Gagal membuat ide');
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                return JSON.parse(text);
+            }
+        });
+    </script>
+</body>
+</html>

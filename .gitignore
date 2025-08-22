@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temp files
+*.tmp
+*.temp
+
+# Preview image (replace with real one)
+preview.png
