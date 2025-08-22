@@ -390,8 +390,11 @@
                 const imageData = { name: `${theme.replace(/\s+/g, '_')}.png`, data: base64Data };
                 generatedImages.set(placeholder, imageData);
 
-                placeholder.addEventListener('click', () => {
-                    toggleSelection(placeholder); // ✅ Multi-select
+                placeholder.addEventListener('click', (e) => {
+                    // ✅ Fix multi-select: hanya toggle jika bukan klik pada tombol lain
+                    if (e.target.tagName !== 'BUTTON') {
+                        toggleSelection(placeholder);
+                    }
                 });
             }
 
@@ -459,7 +462,11 @@
                     placeholder.innerHTML = `<img src="${imgUrl}" alt="${img.name}" class="w-full h-full object-cover">`;
                     elements.imageGrid.appendChild(placeholder);
                     generatedImages.set(placeholder, img);
-                    placeholder.addEventListener('click', () => toggleSelection(placeholder));
+                    placeholder.addEventListener('click', (e) => {
+                        if (e.target.tagName !== 'BUTTON') {
+                            toggleSelection(placeholder);
+                        }
+                    });
                 });
 
                 showError('Sesi dimuat!');
