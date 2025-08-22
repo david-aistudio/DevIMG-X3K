@@ -171,6 +171,12 @@
                         <button id="random-btn" class="btn-secondary w-full py-2 text-sm">Generate Random</button>
                     </div>
 
+                    <!-- Save/Load Session -->
+                    <div class="mt-4 flex gap-2">
+                        <button id="save-session-btn" class="btn-secondary w-full py-2 text-sm">Simpan Sesi</button>
+                        <button id="load-session-btn" class="btn-secondary w-full py-2 text-sm">Muat Sesi</button>
+                    </div>
+
                     <p id="error-msg" class="text-red-400 text-sm mt-3 text-center"></p>
                 </div>
             </div>
@@ -219,6 +225,8 @@
                 autopilotCount: document.getElementById('autopilot-count'),
                 autopilotBtn: document.getElementById('autopilot-btn'),
                 randomBtn: document.getElementById('random-btn'),
+                saveSessionBtn: document.getElementById('save-session-btn'),
+                loadSessionBtn: document.getElementById('load-session-btn'),
                 errorMsg: document.getElementById('error-msg'),
                 progressSection: document.getElementById('progress-section'),
                 progressLabel: document.getElementById('progress-label'),
@@ -415,6 +423,46 @@
                 generatedImages.clear();
                 selectedImages.clear();
                 elements.imageOutput.classList.add('hidden');
+            });
+
+            // --- Simpan Sesi ---
+            elements.saveSessionBtn.addEventListener('click', () => {
+                const session = {
+                    apiKey: elements.apiKeyInput.value,
+                    model: elements.modelSelector.value,
+                    images: Array.from(generatedImages.entries()).map(([el, data]) => ({
+                        name: data.name,
+                        data: data.data
+                    }))
+                };
+                localStorage.setItem('devimg-session', JSON.stringify(session));
+                showError('Sesi tersimpan!');
+            });
+
+            // --- Muat Sesi ---
+            elements.loadSessionBtn.addEventListener('click', () => {
+                const session = JSON.parse(localStorage.getItem('devimg-session'));
+                if (!session) return showError('Tidak ada sesi tersimpan.');
+
+                elements.apiKeyInput.value = session.apiKey;
+                elements.modelSelector.value = session.model;
+
+                elements.imageGrid.innerHTML = '';
+                generatedImages.clear();
+                selectedImages.clear();
+                elements.imageOutput.classList.remove('hidden');
+
+                session.images.forEach(img => {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'image-card aspect-square flex items-center justify-center';
+                    const imgUrl = `data:image/png;base64,${img.data}`;
+                    placeholder.innerHTML = `<img src="${imgUrl}" alt="${img.name}" class="w-full h-full object-cover">`;
+                    elements.imageGrid.appendChild(placeholder);
+                    generatedImages.set(placeholder, img);
+                    placeholder.addEventListener('click', () => toggleSelection(placeholder));
+                });
+
+                showError('Sesi dimuat!');
             });
 
             // --- Helper API Functions ---
